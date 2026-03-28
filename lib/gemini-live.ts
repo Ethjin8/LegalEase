@@ -115,7 +115,11 @@ export class GeminiLiveClient {
         }
       };
     } catch (err: any) {
-      this.emit("error", err?.message ?? "Failed to connect");
+      const message =
+        err?.name === "NotAllowedError"
+          ? "Microphone access denied. Please allow mic access and try again."
+          : err?.message ?? "Failed to connect";
+      this.emit("error", message);
       this.disconnect();
     }
   }

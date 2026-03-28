@@ -35,6 +35,7 @@ export default function DocumentPage() {
 
   // Voice chat
   const [voiceState, setVoiceState] = useState<VoiceState>("idle");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const clientRef = useRef<GeminiLiveClient | null>(null);
 
   useEffect(() => {
@@ -54,6 +55,8 @@ export default function DocumentPage() {
     });
     client.on("error", (err) => {
       console.error("Voice error:", err);
+      setVoiceError(err);
+      setTimeout(() => setVoiceError(null), 5000);
     });
 
     return () => {
@@ -252,6 +255,19 @@ export default function DocumentPage() {
               )}
               <div ref={bottomRef} />
             </div>
+
+            {/* Voice error banner */}
+            {voiceError && (
+              <div style={{
+                padding: "0.5rem 1rem",
+                background: "#fef2f2",
+                borderTop: "1px solid #fecaca",
+                color: "#dc2626",
+                fontSize: "0.82rem",
+              }}>
+                {voiceError}
+              </div>
+            )}
 
             {/* Input */}
             <div style={{ borderTop: "1px solid #e5e7eb", padding: "0.85rem 1rem", display: "flex", gap: "0.6rem", alignItems: "center" }}>
