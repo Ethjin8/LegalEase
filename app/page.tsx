@@ -201,7 +201,7 @@ export default function HomePage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             <MascotAnimation onAppearMidpoint={() => setMascotAppeared(true)} />
             <div style={{ width: 16, flexShrink: 0 }} />
-            <Waveform width={mascotAppeared ? 164 : 240} />
+            <Waveform width={mascotAppeared ? 162 : 240} />
           </div>
           <button
             className="landing-cta"
