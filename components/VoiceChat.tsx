@@ -1,11 +1,8 @@
 "use client";
 
-// ── VoiceChat ────────────────────────────────────────────────────────────────
-// Phase 1: Text-based Q&A (works now)
-// Phase 2: Swap in Gemini Live WebSocket for real-time voice (TODO)
-
 import { useState, useRef, useEffect } from "react";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import { GeminiLiveClient, VoiceState } from "@/lib/gemini-live";
 import type { ChatMessage } from "@/types";
 
 interface Props {
@@ -45,9 +42,40 @@ export default function VoiceChat({ documentId }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Voice chat
+  const [voiceState, setVoiceState] = useState<VoiceState>("idle");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const clientRef = useRef<GeminiLiveClient | null>(null);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  // Set up GeminiLiveClient
+  useEffect(() => {
+    const client = new GeminiLiveClient();
+    clientRef.current = client;
+
+    client.on("stateChange", setVoiceState);
+    client.on("transcript", (t) => {
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === t.role) {
+          return [...prev.slice(0, -1), { ...last, text: last.text + t.text }];
+        }
+        return [...prev, { role: t.role, text: t.text, timestamp: new Date() }];
+      });
+    });
+    client.on("error", (err) => {
+      console.error("Voice error:", err);
+      setVoiceError(err);
+      setTimeout(() => setVoiceError(null), 5000);
+    });
+
+    return () => {
+      client.disconnect();
+    };
+  }, []);
 
   async function sendMessage(text: string) {
     if (!text.trim()) return;
@@ -200,6 +228,19 @@ export default function VoiceChat({ documentId }: Props) {
         <div ref={bottomRef} />
       </div>
 
+      {/* Voice error banner */}
+      {voiceError && (
+        <div style={{
+          padding: "0.5rem 1rem",
+          background: "#fef2f2",
+          borderTop: "1px solid #fecaca",
+          color: "#dc2626",
+          fontSize: "0.82rem",
+        }}>
+          {voiceError}
+        </div>
+      )}
+
       {/* Input */}
       <div
         style={{
@@ -207,9 +248,71 @@ export default function VoiceChat({ documentId }: Props) {
           borderTop: "1.5px solid #e5e7eb",
           display: "flex",
           gap: "0.5rem",
+          alignItems: "center",
           background: "#fafafa",
         }}
       >
+        {/* Mic button */}
+        <button
+          onClick={() => {
+            const client = clientRef.current;
+            if (!client) return;
+            if (voiceState === "idle") {
+              client.connect(documentId);
+            } else {
+              client.disconnect();
+            }
+          }}
+          title={voiceState === "idle" ? "Start voice chat" : "Stop voice chat"}
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            border: "none",
+            background:
+              voiceState === "idle"
+                ? "#f3f4f6"
+                : voiceState === "connecting"
+                ? "#fef3c7"
+                : voiceState === "listening"
+                ? "#fee2e2"
+                : voiceState === "speaking"
+                ? "#dbeafe"
+                : "#f3f4f6",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            transition: "background 0.2s",
+            animation: voiceState === "listening" ? "mic-pulse 1.5s ease-in-out infinite" : "none",
+          }}
+        >
+          {voiceState === "idle" ? (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          ) : (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="6" y="6" width="12" height="12" rx="2" />
+            </svg>
+          )}
+        </button>
+
+        {/* Voice state label */}
+        {voiceState !== "idle" && (
+          <span style={{ fontSize: "0.75rem", color: "#9ca3af", flexShrink: 0 }}>
+            {voiceState === "connecting" && "Connecting…"}
+            {voiceState === "listening" && "Listening…"}
+            {voiceState === "thinking" && "Thinking…"}
+            {voiceState === "speaking" && "Speaking…"}
+          </span>
+        )}
+
+        {/* Text input */}
         <input
           ref={inputRef}
           value={input}
