@@ -8,13 +8,11 @@ export const metadata: Metadata = {
     "AI-powered legal document assistant for immigrants. Upload a document and ask questions in plain language.",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <body>
+        {children}
       <body
         style={{
           display: "flex",
