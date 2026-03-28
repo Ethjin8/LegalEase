@@ -164,17 +164,23 @@ export default function Sidebar() {
             placeholder="Search documents…"
             style={{
               width: "100%",
-              padding: "0.5rem 0.75rem 0.5rem 2.1rem",
-              fontSize: "0.85rem",
+              padding: "0.65rem 0.85rem 0.65rem 2.1rem",
+              fontSize: "0.875rem",
               border: "1.5px solid #e5e7eb",
-              borderRadius: 8,
+              borderRadius: 9,
               outline: "none",
               color: "#1a1a2e",
-              background: "#f9fafb",
-              transition: "border-color 0.15s",
+              background: "#fafafa",
+              transition: "border-color 0.15s, box-shadow 0.15s",
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "#2563eb")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#e5e7eb")}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#2563eb";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "#e5e7eb";
+              e.currentTarget.style.boxShadow = "none";
+            }}
           />
         </div>
       </div>
@@ -232,10 +238,10 @@ export default function Sidebar() {
       {/* ── Divider ── */}
       <div style={{ margin: "0.75rem 1.25rem", borderTop: "1px solid #e5e7eb" }} />
 
-      {/* ── User Preferences ── */}
+      {/* ── Settings ── */}
       <div style={{ padding: "0 0.75rem 0.75rem" }}>
         <Link
-          href="/preferences"
+          href="/settings"
           style={{
             display: "flex",
             alignItems: "center",
@@ -244,13 +250,13 @@ export default function Sidebar() {
             borderRadius: 8,
             textDecoration: "none",
             fontSize: "0.9rem",
-            color: pathname === "/preferences" ? "#2563eb" : "#374151",
-            background: pathname === "/preferences" ? "#eff6ff" : "transparent",
-            fontWeight: pathname === "/preferences" ? 600 : 400,
+            color: pathname === "/settings" ? "#2563eb" : "#374151",
+            background: pathname === "/settings" ? "#eff6ff" : "transparent",
+            fontWeight: pathname === "/settings" ? 600 : 400,
           }}
         >
           <span style={{ opacity: 0.7 }}><PrefsIcon /></span>
-          User Preferences
+          Settings
         </Link>
       </div>
 
