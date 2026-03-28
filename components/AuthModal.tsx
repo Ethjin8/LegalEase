@@ -57,6 +57,7 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [language, setLanguage] = useState("English");
+  const [region, setRegion] = useState("");
   const [readingLevel, setReadingLevel] = useState(1); // 0=Simple, 1=Standard, 2=Detailed
 
   function handleLogin(e: React.FormEvent) {
@@ -203,6 +204,18 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
                   </optgroup>
                 ))}
               </select>
+            </label>
+
+            <label className="auth-label">
+              Region
+              <span className="auth-hint">Laws vary by location — this helps us give accurate guidance</span>
+              <input
+                className="auth-input"
+                type="text"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                placeholder="e.g. California, USA"
+              />
             </label>
 
             <label className="auth-label">
