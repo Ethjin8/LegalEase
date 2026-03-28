@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const LANGUAGE_GROUPS: { region: string; languages: string[] }[] = [
   {
@@ -34,11 +35,7 @@ const LANGUAGE_GROUPS: { region: string; languages: string[] }[] = [
   },
 ];
 
-const READING_LEVELS = [
-  "Simple",
-  "Standard",
-  "Detailed",
-];
+const READING_LEVELS = ["Simple", "Standard", "Detailed"];
 
 type Mode = "login" | "signup";
 type SignupStep = "credentials" | "preferences";
@@ -49,34 +46,70 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
+  const supabase = createClient();
+
   const [mode, setMode] = useState<Mode>("login");
   const [signupStep, setSignupStep] = useState<SignupStep>("credentials");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Form fields (UI only)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [language, setLanguage] = useState("English");
   const [region, setRegion] = useState("");
-  const [readingLevel, setReadingLevel] = useState(1); // 0=Simple, 1=Standard, 2=Detailed
+  const [readingLevel, setReadingLevel] = useState(1); // 0=Simple 1=Standard 2=Detailed
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: { preventDefault(): void }) {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
     onComplete();
   }
 
-  function handleSignupNext(e: React.FormEvent) {
+  function handleSignupNext(e: { preventDefault(): void }) {
     e.preventDefault();
+    setError(null);
     setSignupStep("preferences");
   }
 
-  function handleSignupFinish() {
+  async function handleSignupFinish() {
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name,
+          region,
+          language,
+          reading_level: readingLevel + 1, // store as 1–3
+        },
+      },
+    });
+
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
     onComplete();
   }
 
   function switchMode(newMode: Mode) {
     setMode(newMode);
     setSignupStep("credentials");
+    setError(null);
   }
 
   return (
@@ -104,6 +137,12 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
             : "Help us tailor your experience"}
         </p>
 
+        {error && (
+          <p style={{ color: "#dc2626", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
+            {error}
+          </p>
+        )}
+
         {/* ── Login Form ── */}
         {mode === "login" && (
           <form className="auth-form" onSubmit={handleLogin}>
@@ -129,7 +168,9 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
                 required
               />
             </label>
-            <button className="auth-submit" type="submit">Sign in</button>
+            <button className="auth-submit" type="submit" disabled={loading}>
+              {loading ? "Signing in…" : "Sign in"}
+            </button>
             <div className="auth-switch">
               Don&apos;t have an account?{" "}
               <button type="button" className="auth-switch-btn" onClick={() => switchMode("signup")}>
@@ -173,6 +214,7 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Create a password"
                 required
+                minLength={6}
               />
             </label>
             <button className="auth-submit" type="submit">Continue</button>
@@ -249,6 +291,7 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
                 type="button"
                 className="auth-back"
                 onClick={() => setSignupStep("credentials")}
+                disabled={loading}
               >
                 Back
               </button>
@@ -256,8 +299,9 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
                 type="button"
                 className="auth-submit"
                 onClick={handleSignupFinish}
+                disabled={loading}
               >
-                Get started
+                {loading ? "Creating account…" : "Get started"}
               </button>
             </div>
           </div>
