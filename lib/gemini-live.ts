@@ -22,6 +22,8 @@ export class GeminiLiveClient {
   private nextPlayTime = 0;
   private currentSource: AudioBufferSourceNode | null = null;
   private turnComplete = false;
+  private micAnalyser: AnalyserNode | null = null;
+  private playbackAnalyser: AnalyserNode | null = null;
 
   on<K extends keyof EventMap>(event: K, fn: Listener<K>) {
     if (!this.listeners[event]) this.listeners[event] = [];
@@ -47,6 +49,14 @@ export class GeminiLiveClient {
     return this.state;
   }
 
+  getMicAnalyser(): AnalyserNode | null {
+    return this.micAnalyser;
+  }
+
+  getPlaybackAnalyser(): AnalyserNode | null {
+    return this.playbackAnalyser;
+  }
+
   async connect(documentId: string) {
     if (this.state !== "idle") return;
     this.setState("connecting");
@@ -61,6 +71,14 @@ export class GeminiLiveClient {
         audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 48000 },
       });
       const source = this.audioContext.createMediaStreamSource(this.mediaStream);
+
+      this.micAnalyser = this.audioContext.createAnalyser();
+      this.micAnalyser.fftSize = 256;
+      source.connect(this.micAnalyser);
+
+      this.playbackAnalyser = this.audioContext.createAnalyser();
+      this.playbackAnalyser.fftSize = 256;
+
       this.workletNode = new AudioWorkletNode(this.audioContext, "pcm-processor");
 
       // When worklet sends a PCM chunk, forward it to proxy
@@ -216,7 +234,8 @@ export class GeminiLiveClient {
 
     const source = this.audioContext.createBufferSource();
     source.buffer = buffer;
-    source.connect(this.audioContext.destination);
+    source.connect(this.playbackAnalyser!);
+    this.playbackAnalyser!.connect(this.audioContext.destination);
 
     const endTime = this.nextPlayTime + buffer.duration;
 
@@ -249,6 +268,8 @@ export class GeminiLiveClient {
     // Disconnect worklet
     this.workletNode?.disconnect();
     this.workletNode = null;
+    this.micAnalyser = null;
+    this.playbackAnalyser = null;
 
     // Close audio context
     this.audioContext?.close();
