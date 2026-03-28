@@ -11,7 +11,7 @@ export async function generateFAQ(documentText: string): Promise<{
   key_dates: string[];
   obligations: string[];
 }> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `You are a plain-language legal assistant helping immigrants understand documents.
 
@@ -49,7 +49,7 @@ export async function answerQuestion(
   question: string,
   history: { role: "user" | "model"; parts: { text: string }[] }[]
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const chat = model.startChat({
     history: [
@@ -81,7 +81,7 @@ export async function runDeepResearch(
   topic: string
 ): Promise<{ findings: string; sources: { title: string; url: string }[] }> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     // TODO: enable grounding with Google Search when available in your region
     // tools: [{ googleSearch: {} }],
   });
