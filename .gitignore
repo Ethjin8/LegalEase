@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 node_modules
 .env.local
 .next/
 next-env.d.ts
-=======
 **/.DS_Store
->>>>>>> 09196b3 (feat: add legal docs dataset (61 PDFs))
+tsconfig.tsbuildinfo
