@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import DocumentUpload from "@/components/DocumentUpload";
 
-export default function UploadPage() {
+export default function WorkspaceView() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
