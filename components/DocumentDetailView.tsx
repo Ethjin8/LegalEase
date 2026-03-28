@@ -217,7 +217,7 @@ export default function DocumentDetailView({ doc, faq }: Props) {
       </div>
 
       {/* ── Content area ── */}
-      <div>
+      <div style={{ paddingBottom: (view === "ask" || view === "raw") ? "2rem" : 0 }}>
         {view === "faq" && <FAQPanel faq={faq} />}
 
         {view === "ask" && (
