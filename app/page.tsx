@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthModal from "@/components/AuthModal";
+import MascotAnimation from "@/components/MascotAnimation";
 
 type IconType = "globe" | "house" | "briefcase" | "dollar" | "shield" | "scales" | "heart" | "graduation";
 
@@ -97,7 +98,8 @@ const CARDS: {
   { category: "Education", color: "#7C5CBF", icon: "graduation", top: "70%", left: "78%", animation: "drift7 48s ease-in-out infinite" },
 ];
 
-const WAVE_BARS = Array.from({ length: 40 }, (_, i) => {
+const WAVE_BARS_MAX = 80;
+const WAVE_BARS = Array.from({ length: WAVE_BARS_MAX }, (_, i) => {
   const animations = ["wave0", "wave1", "wave2", "wave3", "wave4"];
   const anim = animations[i % 5];
   const duration = 1.8 + (i * 0.37) % 2.1;
@@ -106,9 +108,20 @@ const WAVE_BARS = Array.from({ length: 40 }, (_, i) => {
   return { anim, duration, delay, height };
 });
 
-function Waveform() {
+// Each bar is 3px wide + 3px gap = 6px per bar
+const BAR_WIDTH = 6;
+
+function Waveform({ width }: { width: number }) {
   return (
-    <div className="waveform">
+    <div
+      className="waveform"
+      style={{
+        width,
+        transition: "width 2.5s cubic-bezier(0.25, 0, 0.1, 1)",
+        justifyContent: "flex-start",
+        overflow: "hidden",
+      }}
+    >
       {WAVE_BARS.map((bar, i) => (
         <div
           key={i}
@@ -116,6 +129,7 @@ function Waveform() {
           style={{
             height: bar.height,
             animation: `${bar.anim} ${bar.duration}s ease-in-out ${bar.delay}s infinite`,
+            flexShrink: 0,
           }}
         />
       ))}
@@ -126,6 +140,8 @@ function Waveform() {
 export default function HomePage() {
   const router = useRouter();
   const [showAuth, setShowAuth] = useState(false);
+  const [mascotDisappearing, setMascotDisappearing] = useState(false);
+  const [mascotDone, setMascotDone] = useState(false);
 
   function handleGetStarted() {
     setShowAuth(true);
@@ -183,7 +199,21 @@ export default function HomePage() {
           <p className="landing-tagline">
             Understand your legal documents — no jargon, no stress.
           </p>
-          <Waveform />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{
+              width: mascotDisappearing ? 0 : 60,
+              marginRight: mascotDisappearing ? 0 : 16,
+              overflow: "hidden",
+              flexShrink: 0,
+              transition: "width 2.5s cubic-bezier(0.25, 0, 0.1, 1), margin-right 2.5s cubic-bezier(0.25, 0, 0.1, 1)",
+            }}>
+              <MascotAnimation
+                onDisappearStart={() => setMascotDisappearing(true)}
+                onDone={() => setMascotDone(true)}
+              />
+            </div>
+            <Waveform width={mascotDisappearing ? 240 : 164} />
+          </div>
           <button
             className="landing-cta"
             onClick={handleGetStarted}
