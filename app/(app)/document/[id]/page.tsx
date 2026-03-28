@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import FAQPanel from "@/components/FAQPanel";
-import type { ChatMessage, Document, FAQ } from "@/types";
+// To swap in the new voice component: change this import only
+import VoiceChat from "@/components/VoiceChat";
+import type { Document, FAQ } from "@/types";
 
 type View = "faq" | "key_dates" | "obligations" | "raw" | "ask";
 
@@ -26,11 +28,6 @@ export default function DocumentPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  // Ask AI
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [question, setQuestion] = useState("");
-  const [asking, setAsking] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -62,30 +59,6 @@ export default function DocumentPage() {
     load();
   }, [id]);
 
-  async function sendQuestion() {
-    if (!question.trim() || asking || !id) return;
-    const userMsg: ChatMessage = { role: "user", text: question.trim(), timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
-    setQuestion("");
-    setAsking(true);
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentId: id, question: userMsg.text, history: messages }),
-      });
-      const json = await res.json();
-      const aiMsg: ChatMessage = { role: "model", text: json.answer ?? json.error ?? "No response.", timestamp: new Date() };
-      setMessages(prev => [...prev, aiMsg]);
-    } catch {
-      setMessages(prev => [...prev, { role: "model", text: "Something went wrong. Please try again.", timestamp: new Date() }]);
-    } finally {
-      setAsking(false);
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-    }
-  }
 
   if (loading) return (
     <div style={{ padding: "3rem", color: "#9ca3af", fontSize: "0.9rem" }}>Loading…</div>
@@ -190,77 +163,7 @@ export default function DocumentPage() {
           </div>
         )}
 
-        {view === "ask" && (
-          <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden", display: "flex", flexDirection: "column", height: 520 }}>
-            {/* Messages */}
-            <div style={{ flex: 1, overflowY: "auto", padding: "1.25rem 1.5rem", display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-              {messages.length === 0 && (
-                <p style={{ color: "#9ca3af", fontSize: "0.88rem", margin: "auto", textAlign: "center" }}>
-                  Ask anything about this document.
-                </p>
-              )}
-              {messages.map((msg, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start" }}>
-                  <div style={{
-                    maxWidth: "80%",
-                    padding: "0.65rem 1rem",
-                    borderRadius: msg.role === "user" ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
-                    background: msg.role === "user" ? "#2563eb" : "#f3f4f6",
-                    color: msg.role === "user" ? "#fff" : "#1a1a2e",
-                    fontSize: "0.88rem",
-                    lineHeight: 1.6,
-                  }}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
-              {asking && (
-                <div style={{ display: "flex", justifyContent: "flex-start" }}>
-                  <div style={{ padding: "0.65rem 1rem", borderRadius: "12px 12px 12px 2px", background: "#f3f4f6", color: "#9ca3af", fontSize: "0.88rem" }}>
-                    Thinking…
-                  </div>
-                </div>
-              )}
-              <div ref={bottomRef} />
-            </div>
-
-            {/* Input */}
-            <div style={{ borderTop: "1px solid #e5e7eb", padding: "0.85rem 1rem", display: "flex", gap: "0.6rem" }}>
-              <input
-                value={question}
-                onChange={e => setQuestion(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendQuestion(); } }}
-                placeholder="Ask a question about this document…"
-                disabled={asking}
-                style={{
-                  flex: 1,
-                  padding: "0.6rem 0.85rem",
-                  borderRadius: 8,
-                  border: "1px solid #e5e7eb",
-                  fontSize: "0.88rem",
-                  outline: "none",
-                  color: "#1a1a2e",
-                }}
-              />
-              <button
-                onClick={sendQuestion}
-                disabled={asking || !question.trim()}
-                style={{
-                  padding: "0.6rem 1.1rem",
-                  borderRadius: 8,
-                  border: "none",
-                  background: asking || !question.trim() ? "#93c5fd" : "#2563eb",
-                  color: "#fff",
-                  fontWeight: 600,
-                  fontSize: "0.88rem",
-                  cursor: asking || !question.trim() ? "default" : "pointer",
-                }}
-              >
-                Send
-              </button>
-            </div>
-          </div>
-        )}
+        {view === "ask" && <VoiceChat documentId={id} />}
 
         {view === "raw" && (
           <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden" }}>
