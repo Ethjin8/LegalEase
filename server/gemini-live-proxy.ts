@@ -20,12 +20,78 @@ const GEMINI_WS_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.gene
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const SYSTEM_PROMPT = `You are a friendly, patient legal document assistant for DocuMentor.
+/** Map display language names (from Settings) to BCP-47 codes for Gemini TTS */
+const LANGUAGE_CODES: Record<string, string> = {
+  "English": "en-US",
+  "Spanish (US & Mexico)": "es-US",
+  "Portuguese (Brazil)": "pt-BR",
+  "French (Canada)": "fr-CA",
+  "Mandarin Chinese (Simplified)": "zh-CN",
+  "Mandarin Chinese (Traditional)": "zh-TW",
+  "Cantonese": "yue-HK",
+  "Japanese": "ja-JP",
+  "Korean": "ko-KR",
+  "Vietnamese": "vi-VN",
+  "Thai": "th-TH",
+  "Filipino (Tagalog)": "fil-PH",
+  "Indonesian": "id-ID",
+  "Hindi": "hi-IN",
+  "Bengali": "bn-IN",
+  "Punjabi": "pa-IN",
+  "Marathi": "mr-IN",
+  "Telugu": "te-IN",
+  "Tamil": "ta-IN",
+  "Gujarati": "gu-IN",
+  "Urdu": "ur-PK",
+  "Kannada": "kn-IN",
+  "Malayalam": "ml-IN",
+  "French": "fr-FR",
+  "German": "de-DE",
+  "Italian": "it-IT",
+  "Portuguese (Portugal)": "pt-PT",
+  "Dutch": "nl-NL",
+  "Russian": "ru-RU",
+  "Ukrainian": "uk-UA",
+  "Polish": "pl-PL",
+  "Greek": "el-GR",
+  "Swedish": "sv-SE",
+  "Danish": "da-DK",
+  "Norwegian": "nb-NO",
+  "Finnish": "fi-FI",
+  "Turkish": "tr-TR",
+  "Arabic": "ar-SA",
+  "Hebrew": "he-IL",
+  "Swahili": "sw-KE",
+  "Zulu": "zu-ZA",
+  "Amharic": "am-ET",
+};
+
+function getLanguageCode(language?: string): string {
+  if (!language) return "en-US";
+  return LANGUAGE_CODES[language] ?? "en-US";
+}
+
+function buildSystemPrompt(language?: string): string {
+  const lang = language && language !== "English" ? language : null;
+
+  if (lang) {
+    return `You are a friendly, patient legal document assistant for DocuMentor.
+The user has uploaded a legal document and wants to understand it.
+
+CRITICAL LANGUAGE RULE: You MUST speak and respond ONLY in ${lang}. Every word you say must be in ${lang}. Do NOT use English at all — not even for greetings, transitions, or filler words. If the user speaks in any language, always reply in ${lang}.
+
+Speak clearly at an even pace, pausing between sentences.
+Use plain, simple ${lang} — avoid legal jargon.
+Keep answers concise but thorough.`;
+  }
+
+  return `You are a friendly, patient legal document assistant for DocuMentor.
 The user has uploaded a legal document and wants to understand it.
 Speak clearly at an even pace, pausing between sentences.
 Use plain language — avoid legal jargon.
 If the user is a non-native English speaker, be extra clear.
 Keep answers concise but thorough.`;
+}
 
 const wss = new WebSocketServer({ port: PORT });
 console.log(`Gemini Live proxy listening on ws://localhost:${PORT}`);
@@ -83,13 +149,14 @@ wss.on("connection", (client: WebSocket) => {
                   prebuiltVoiceConfig: {
                     voiceName: "Puck",
                   }
-                }
+                },
+                languageCode: getLanguageCode(language),
               }
             },
             systemInstruction: {
               parts: [
                 {
-                  text: `${SYSTEM_PROMPT}${language && language !== "English" ? `\nIMPORTANT: Speak and respond in ${language}.` : ""}\n\nDocument content:\n${docText}`,
+                  text: `${buildSystemPrompt(language)}\n\nDocument content:\n${docText}`,
                 },
               ],
             },

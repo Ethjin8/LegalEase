@@ -52,9 +52,14 @@ export async function answerQuestion(
 ): Promise<string> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-  const langInstruction = language && language !== "English"
-    ? `\nIMPORTANT: Respond in ${language}. If the user writes in ${language}, respond in that language.`
-    : "";
+  const lang = language && language !== "English" ? language : null;
+
+  const systemText = lang
+    ? `You are a plain-language legal assistant. The user has uploaded a legal document.
+CRITICAL LANGUAGE RULE: You MUST respond ONLY in ${lang}. Every word of your response must be in ${lang}. Do NOT use English at all. If the user writes in any language, always reply in ${lang}.
+Answer questions clearly and simply. Avoid legal jargon. Use plain ${lang}.`
+    : `You are a plain-language legal assistant. The user has uploaded a legal document.
+Answer questions about it clearly and simply. Avoid jargon.`;
 
   const chat = model.startChat({
     history: [
@@ -62,8 +67,7 @@ export async function answerQuestion(
         role: "user",
         parts: [
           {
-            text: `You are a plain-language legal assistant. The user has uploaded a legal document.
-Answer questions about it clearly and simply. Avoid jargon.${langInstruction} Here is the document:\n\n${documentText.slice(0, 8000)}`,
+            text: `${systemText} Here is the document:\n\n${documentText.slice(0, 8000)}`,
           },
         ],
       },
