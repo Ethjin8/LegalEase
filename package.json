@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "dev:proxy": "tsx server/gemini-live-proxy.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -17,14 +18,17 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
-    "tesseract.js": "^6.0.0"
+    "tesseract.js": "^6.0.0",
+    "ws": "^8.20.0"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "supabase": "^2.84.4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }
