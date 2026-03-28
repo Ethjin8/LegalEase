@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(echo $GEMINI_API_KEY)",
+      "Bash(ls /Users/ericle/DocuMentor/node_modules/@google/genai/dist/*.d.ts)",
+      "Bash(npx tsx:*)",
+      "Bash(xxd)",
+      "Bash(pip3 show:*)",
+      "Bash(pip3 install:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 scripts/gemini_live_test.py)",
+      "WebSearch",
+      "Bash(gh api:*)",
+      "Bash(brew install:*)",
+      "mcp__plugin_context-mode_context-mode__execute",
+      "Bash(ffprobe -v quiet -show_streams /Users/ericle/DocuMentor/output-video.mp4)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "mcp__plugin_context-mode_context-mode__execute_file",
+      "Bash(lsof -ti:3000)",
+      "Bash(xargs kill:*)",
+      "Bash(git merge:*)",
+      "Bash(git show:*)"
+    ]
+  }
+}
