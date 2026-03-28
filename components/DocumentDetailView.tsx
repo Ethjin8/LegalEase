@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import FAQPanel from "@/components/FAQPanel";
-// To swap in the new voice component: change this import only
 import VoiceChat from "@/components/VoiceChat";
-import type { Document, FAQ } from "@/types";
+import MicOverlay from "@/components/MicOverlay";
+import { GeminiLiveClient, VoiceState } from "@/lib/gemini-live";
+import { createClient } from "@/lib/supabase/client";
+import type { Document, FAQ, ChatMessage } from "@/types";
 
 type View = "faq" | "key_dates" | "obligations" | "raw" | "ask";
 
@@ -24,8 +26,60 @@ interface Props {
 export default function DocumentDetailView({ doc, faq }: Props) {
   const [view, setView] = useState<View>("faq");
 
+  // Voice state — owned here so MicOverlay + VoiceChat share it
+  const [voiceState, setVoiceState] = useState<VoiceState>("idle");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [voiceMessages, setVoiceMessages] = useState<ChatMessage[]>([]);
+  const [language, setLanguage] = useState<string>("English");
+  const clientRef = useRef<GeminiLiveClient | null>(null);
+
+  // Fetch user's preferred language
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const lang = user?.user_metadata?.language;
+      if (lang) setLanguage(lang);
+    });
+  }, []);
+
+  // Set up GeminiLiveClient
+  useEffect(() => {
+    const client = new GeminiLiveClient();
+    clientRef.current = client;
+
+    client.on("stateChange", (s) => {
+      setVoiceState(s);
+    });
+    client.on("transcript", (t) => {
+      setVoiceMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.role === t.role) {
+          return [...prev.slice(0, -1), { ...last, text: last.text + t.text }];
+        }
+        return [...prev, { role: t.role, text: t.text, timestamp: new Date() }];
+      });
+    });
+    client.on("error", (err) => {
+      console.error("Voice error:", err);
+      setVoiceError(err);
+      setTimeout(() => setVoiceError(null), 5000);
+    });
+
+    return () => { client.disconnect(); };
+  }, []);
+
+  function handleMicToggle() {
+    const client = clientRef.current;
+    if (!client) return;
+    if (voiceState === "idle") {
+      client.connect(doc.id, language);
+    } else {
+      client.disconnect();
+    }
+  }
+
   return (
-    <div style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1.5rem" }}>
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "2rem 1.5rem", paddingBottom: 100 }}>
 
       {/* ── Header ── */}
       <div style={{ marginBottom: "1.5rem" }}>
@@ -119,7 +173,15 @@ export default function DocumentDetailView({ doc, faq }: Props) {
           </div>
         )}
 
-        {view === "ask" && <VoiceChat documentId={doc.id} />}
+        {view === "ask" && (
+          <VoiceChat
+            documentId={doc.id}
+            voiceMessages={voiceMessages}
+            voiceState={voiceState}
+            voiceError={voiceError}
+            language={language}
+          />
+        )}
 
         {view === "raw" && (
           <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, overflow: "hidden" }}>
@@ -143,6 +205,9 @@ export default function DocumentDetailView({ doc, faq }: Props) {
           </div>
         )}
       </div>
+
+      {/* ── Mic overlay — always visible ── */}
+      <MicOverlay voiceState={voiceState} onToggle={handleMicToggle} />
     </div>
   );
 }

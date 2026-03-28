@@ -194,7 +194,7 @@ export default function HomePage() {
         </div>
 
         <div className="landing-content">
-          <h1 className="landing-title">Docu<span style={{ color: "#2563eb" }}>Mentor</span></h1>
+          <h1 className="landing-title">Legal<span style={{ color: "#2563eb" }}>Ease</span></h1>
           <p className="landing-tagline">
             Understand your legal documents — no jargon, no stress.
           </p>

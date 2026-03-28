@@ -100,7 +100,7 @@ export default function Sidebar() {
       <div style={{ padding: "1.75rem 1.5rem 1.25rem" }}>
         <Link href="/" style={{ textDecoration: "none" }}>
           <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.4rem", fontWeight: 400, color: "#1a1a2e", letterSpacing: "-0.02em" }}>
-            Docu<span style={{ color: "#2563eb" }}>Mentor</span>
+            Legal<span style={{ color: "#2563eb" }}>Ease</span>
           </span>
         </Link>
         <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginTop: "0.2rem" }}>

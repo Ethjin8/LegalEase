@@ -75,7 +75,7 @@ function buildSystemPrompt(language?: string): string {
   const lang = language && language !== "English" ? language : null;
 
   if (lang) {
-    return `You are a friendly, patient legal document assistant for DocuMentor.
+    return `You are a friendly, patient legal document assistant for LegalEase.
 The user has uploaded a legal document and wants to understand it.
 
 CRITICAL LANGUAGE RULE: You MUST speak and respond ONLY in ${lang}. Every word you say must be in ${lang}. Do NOT use English at all — not even for greetings, transitions, or filler words. If the user speaks in any language, always reply in ${lang}.
@@ -85,7 +85,7 @@ Use plain, simple ${lang} — avoid legal jargon.
 Keep answers concise but thorough.`;
   }
 
-  return `You are a friendly, patient legal document assistant for DocuMentor.
+  return `You are a friendly, patient legal document assistant for LegalEase.
 The user has uploaded a legal document and wants to understand it.
 Speak clearly at an even pace, pausing between sentences.
 Use plain language — avoid legal jargon.

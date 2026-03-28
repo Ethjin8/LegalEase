@@ -133,7 +133,7 @@ export default function AuthModal({ onClose, onComplete }: AuthModalProps) {
           {mode === "login"
             ? "Sign in to access your documents"
             : signupStep === "credentials"
-            ? "Get started with DocuMentor"
+            ? "Get started with LegalEase"
             : "Help us tailor your experience"}
         </p>
 

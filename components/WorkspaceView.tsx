@@ -47,7 +47,7 @@ export default function WorkspaceView() {
     >
       <div style={{ maxWidth: 560, width: "100%", textAlign: "center" }}>
         <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "2rem", fontWeight: 400, marginBottom: "0.5rem" }}>
-          Docu<span style={{ color: "#2563eb" }}>Mentor</span>
+          Legal<span style={{ color: "#2563eb" }}>Ease</span>
         </h1>
         <p style={{ color: "#4b5563", marginBottom: "2.5rem", fontSize: "1.1rem", fontWeight: 300, letterSpacing: "0.04em" }}>
           Upload a legal document. We&apos;ll explain it in plain language — no jargon.

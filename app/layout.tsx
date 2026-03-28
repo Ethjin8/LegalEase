@@ -3,7 +3,7 @@ import "./globals.css";
 import TransitionReveal from "@/components/TransitionReveal";
 
 export const metadata: Metadata = {
-  title: "DocuMentor — Understand Your Legal Documents",
+  title: "LegalEase — Understand Your Legal Documents",
   description:
     "AI-powered legal document assistant for immigrants. Upload a document and ask questions in plain language.",
 };

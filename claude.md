@@ -1,4 +1,4 @@
-**DocuMentor**
+**LegalEase**
 
 An AI-powered legal document assistant that removes bureaucratic barriers for immigrants by making complex legal paperwork understandable through conversational AI and real-time research.
 
