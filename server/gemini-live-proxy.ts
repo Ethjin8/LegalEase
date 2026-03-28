@@ -3,12 +3,21 @@ import { createClient } from "@supabase/supabase-js";
 
 const PORT = Number(process.env.PROXY_PORT) || 3001;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!GEMINI_API_KEY) {
+  console.error("GEMINI_API_KEY is not set");
+  process.exit(1);
+}
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error("NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set");
+  process.exit(1);
+}
+
 const GEMINI_WS_URL = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${GEMINI_API_KEY}`;
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const SYSTEM_PROMPT = `You are a friendly, patient legal document assistant for DocuMentor.
 The user has uploaded a legal document and wants to understand it.
@@ -25,11 +34,21 @@ wss.on("connection", (client: WebSocket) => {
   let gemini: WebSocket | null = null;
 
   client.on("message", async (raw: Buffer) => {
-    const msg = JSON.parse(raw.toString());
+    let msg: any;
+    try {
+      msg = JSON.parse(raw.toString());
+    } catch {
+      return; // ignore non-JSON frames
+    }
 
     // First message from client must be init with documentId
     if (msg.type === "init" && !gemini) {
       const documentId = msg.documentId;
+      if (!documentId || typeof documentId !== "string") {
+        client.send(JSON.stringify({ error: "Invalid documentId" }));
+        client.close();
+        return;
+      }
       console.log(`Init for document: ${documentId}`);
 
       // Fetch document text from Supabase
@@ -105,6 +124,13 @@ wss.on("connection", (client: WebSocket) => {
 
   client.on("close", () => {
     console.log("Client disconnected");
+    if (gemini && gemini.readyState === WebSocket.OPEN) {
+      gemini.close();
+    }
+  });
+
+  client.on("error", (err) => {
+    console.error("Client WS error:", err.message);
     if (gemini && gemini.readyState === WebSocket.OPEN) {
       gemini.close();
     }
