@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthModal from "@/components/AuthModal";
 
@@ -127,6 +127,13 @@ export default function HomePage() {
   const router = useRouter();
   const [closing, setClosing] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   function handleGetStarted() {
     setShowAuth(true);
@@ -136,7 +143,7 @@ export default function HomePage() {
     setShowAuth(false);
     if (closing) return;
     setClosing(true);
-    setTimeout(() => {
+    timerRef.current = setTimeout(() => {
       sessionStorage.setItem("doReveal", "1");
       router.push("/workspace");
     }, 700);
