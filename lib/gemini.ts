@@ -13,7 +13,7 @@ export async function generateFAQ(documentText: string): Promise<{
 }> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-  const prompt = `You are a plain-language legal assistant helping immigrants understand documents.
+  const prompt = `You are a plain-language legal assistant named LegalEase helping people understand documents.
 
 Analyze this legal document and respond with ONLY valid JSON in this exact shape:
 {
