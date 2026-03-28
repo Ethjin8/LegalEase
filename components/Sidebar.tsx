@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 interface DocEntry {
   id: string;
@@ -253,6 +254,28 @@ export default function Sidebar() {
         </Link>
       </div>
 
+      {/* ── Logout (dev) ── */}
+      <div style={{ padding: "0 0.75rem 1rem" }}>
+        <button
+          onClick={async () => {
+            const supabase = createClient();
+            await supabase.auth.signOut();
+            router.push("/");
+          }}
+          style={{
+            width: "100%",
+            padding: "0.5rem 1rem",
+            borderRadius: 8,
+            border: "1px solid #e5e7eb",
+            background: "transparent",
+            color: "#6b7280",
+            fontSize: "0.82rem",
+            cursor: "pointer",
+          }}
+        >
+          Sign Out
+        </button>
+      </div>
     </aside>
   );
 }
