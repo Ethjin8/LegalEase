@@ -143,7 +143,7 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return <main style={{ padding: "3rem 2rem", color: "#6b7280" }}>Loading…</main>;
+    return <main style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#6b7280" }}>Loading…</main>;
   }
 
   return (

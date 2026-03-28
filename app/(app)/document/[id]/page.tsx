@@ -46,7 +46,7 @@ export default function DocumentPage() {
   }, [id]);
 
   if (loading) return (
-    <div style={{ padding: "3rem", color: "#9ca3af", fontSize: "0.9rem" }}>Loading…</div>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#9ca3af", fontSize: "0.9rem" }}>Loading…</div>
   );
 
   if (notFound) return (

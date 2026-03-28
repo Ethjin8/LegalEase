@@ -99,7 +99,7 @@ export default function Sidebar() {
       {/* ── Logo ── */}
       <div style={{ padding: "1.75rem 1.5rem 1.25rem" }}>
         <Link href="/" style={{ textDecoration: "none" }}>
-          <span style={{ fontSize: "1.4rem", fontWeight: 700, color: "#1a1a2e", letterSpacing: "-0.02em" }}>
+          <span style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.4rem", fontWeight: 400, color: "#1a1a2e", letterSpacing: "-0.02em" }}>
             Docu<span style={{ color: "#2563eb" }}>Mentor</span>
           </span>
         </Link>
@@ -134,13 +134,17 @@ export default function Sidebar() {
             cursor: uploading ? "wait" : "pointer",
             letterSpacing: "0.01em",
             boxShadow: "0 4px 14px rgba(37,99,235,0.35)",
-            transition: "opacity 0.15s",
+            transition: "filter 0.15s, transform 0.15s",
           }}
           onMouseEnter={(e) => {
-            if (!uploading) (e.currentTarget as HTMLElement).style.opacity = "0.9";
+            if (!uploading) {
+              e.currentTarget.style.filter = "brightness(1.15)";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.opacity = "1";
+            e.currentTarget.style.filter = "brightness(1)";
+            e.currentTarget.style.transform = "translateY(0)";
           }}
         >
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
@@ -234,7 +238,7 @@ export default function Sidebar() {
                       display: "flex",
                       alignItems: "center",
                       gap: "0.55rem",
-                      padding: "0.5rem 0.75rem",
+                      padding: "0.5rem 2rem 0.5rem 0.75rem",
                       borderRadius: 8,
                       textDecoration: "none",
                       fontSize: "0.875rem",
@@ -310,6 +314,15 @@ export default function Sidebar() {
             color: pathname === "/settings" ? "#2563eb" : "#374151",
             background: pathname === "/settings" ? "#eff6ff" : "transparent",
             fontWeight: pathname === "/settings" ? 600 : 400,
+            transition: "background 0.15s, transform 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            if (pathname !== "/settings") e.currentTarget.style.background = "#f3f4f6";
+            e.currentTarget.style.transform = "translateY(-1px)";
+          }}
+          onMouseLeave={(e) => {
+            if (pathname !== "/settings") e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.transform = "translateY(0)";
           }}
         >
           <span style={{ opacity: 0.7, display: "flex", alignItems: "center" }}><PrefsIcon /></span>
@@ -329,11 +342,21 @@ export default function Sidebar() {
             width: "100%",
             padding: "0.5rem 1rem",
             borderRadius: 8,
-            border: "1px solid #e5e7eb",
-            background: "transparent",
-            color: "#6b7280",
+            border: "none",
+            background: "#dc2626",
+            color: "#fff",
             fontSize: "0.82rem",
+            fontWeight: 600,
             cursor: "pointer",
+            transition: "filter 0.15s, transform 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.filter = "brightness(1.15)";
+            e.currentTarget.style.transform = "translateY(-1px)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = "brightness(1)";
+            e.currentTarget.style.transform = "translateY(0)";
           }}
         >
           Sign Out

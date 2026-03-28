@@ -47,7 +47,7 @@ function FAQItem({
           alignItems: "center",
           gap: "1rem",
           transition: "background 0.2s",
-          fontFamily: "'Source Sans 3', sans-serif",
+          fontFamily: "'Inter', sans-serif",
           fontWeight: 600,
           fontSize: "0.95rem",
           color: isOpen ? "#1d4ed8" : "#1a1a2e",
@@ -108,7 +108,7 @@ const SectionLabel = ({ children }: { children: React.ReactNode }) => (
     textTransform: "uppercase",
     color: "#9ca3af",
     marginBottom: "0.75rem",
-    fontFamily: "'Source Sans 3', sans-serif",
+    fontFamily: "'Inter', sans-serif",
   }}>
     {children}
   </p>
@@ -120,7 +120,7 @@ export default function FAQPanel({ faq }: Props) {
   if (!faq) {
     return (
       <div style={{ padding: "1.5rem", background: "#f9fafb", borderRadius: 10 }}>
-        <p style={{ color: "#6b7280", fontFamily: "'Source Sans 3', sans-serif" }}>
+        <p style={{ color: "#6b7280", fontFamily: "'Inter', sans-serif" }}>
           No FAQ available for this document.
         </p>
       </div>
@@ -167,7 +167,7 @@ export default function FAQPanel({ faq }: Props) {
               <SectionLabel>Key Dates</SectionLabel>
               <ul style={{ paddingLeft: "1.1rem", color: "#374151", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                 {faq.key_dates.map((d, i) => (
-                  <li key={i} style={{ fontFamily: "'Source Sans 3', sans-serif", fontSize: "0.9rem", lineHeight: 1.6 }}>{d}</li>
+                  <li key={i} style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.9rem", lineHeight: 1.6 }}>{d}</li>
                 ))}
               </ul>
             </div>
@@ -182,7 +182,7 @@ export default function FAQPanel({ faq }: Props) {
               <SectionLabel>Your Obligations</SectionLabel>
               <ul style={{ paddingLeft: "1.1rem", color: "#374151", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                 {faq.obligations.map((o, i) => (
-                  <li key={i} style={{ fontFamily: "'Source Sans 3', sans-serif", fontSize: "0.9rem", lineHeight: 1.6 }}>{o}</li>
+                  <li key={i} style={{ fontFamily: "'Inter', sans-serif", fontSize: "0.9rem", lineHeight: 1.6 }}>{o}</li>
                 ))}
               </ul>
             </div>

@@ -9,11 +9,11 @@ import type { Document, FAQ } from "@/types";
 type View = "faq" | "key_dates" | "obligations" | "raw" | "ask";
 
 const VIEW_OPTIONS: { value: View; label: string }[] = [
-  { value: "faq",         label: "FAQ Overview" },
+  { value: "faq",         label: "Overview" },
+  { value: "ask",         label: "Ask AI" },
   { value: "key_dates",   label: "Key Dates" },
   { value: "obligations", label: "Your Obligations" },
-  { value: "raw",         label: "Full Document Text" },
-  { value: "ask",         label: "Ask AI" },
+  { value: "raw",         label: "Full Text" },
 ];
 
 interface Props {
@@ -32,7 +32,7 @@ export default function DocumentDetailView({ doc, faq }: Props) {
         <p style={{ fontSize: "0.75rem", color: "#9ca3af", marginBottom: "0.25rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
           Document
         </p>
-        <h1 style={{ fontSize: "1.35rem", fontWeight: 700, color: "#1a1a2e", wordBreak: "break-word" }}>
+        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.35rem", fontWeight: 400, color: "#1a1a2e", wordBreak: "break-word" }}>
           {doc.file_name}
         </h1>
         {doc.created_at && (

@@ -57,7 +57,7 @@ export class GeminiLiveClient {
     return this.playbackAnalyser;
   }
 
-  async connect(documentId: string) {
+  async connect(documentId: string, language?: string) {
     if (this.state !== "idle") return;
     this.setState("connecting");
 
@@ -112,7 +112,7 @@ export class GeminiLiveClient {
       this.ws = new WebSocket(proxyUrl);
 
       this.ws.onopen = () => {
-        this.ws!.send(JSON.stringify({ type: "init", documentId }));
+        this.ws!.send(JSON.stringify({ type: "init", documentId, language }));
       };
 
       this.ws.onmessage = (e: MessageEvent) => {

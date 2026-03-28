@@ -5,7 +5,7 @@ import type { ChatMessage } from "@/types";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
-  const { documentId, question, history } = await req.json();
+  const { documentId, question, history, language } = await req.json();
 
   if (!documentId || !question) {
     return NextResponse.json(
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     parts: [{ text: msg.text }],
   }));
 
-  const answer = await answerQuestion(doc.raw_text, question, geminiHistory);
+  const answer = await answerQuestion(doc.raw_text, question, geminiHistory, language);
 
   return NextResponse.json({ answer });
 }

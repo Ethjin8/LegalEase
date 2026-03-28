@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;500;600&family=Merriweather:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;500;600&family=Merriweather:wght@400;700&display=swap');
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -11,7 +11,7 @@ html, body {
   overflow-x: hidden;
   background: #ffffff;
   color: #1a1a2e;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
   line-height: 1.6;
 }
@@ -66,9 +66,9 @@ a:hover {
 }
 
 .landing-title {
-  font-family: 'Libre Baskerville', serif;
-  font-size: 5.5rem;
-  font-weight: 700;
+  font-family: 'DM Serif Display', serif;
+  font-size: 4.75rem;
+  font-weight: 400;
   color: #1a1a2e;
   letter-spacing: -0.02em;
   line-height: 1.1;
@@ -76,10 +76,12 @@ a:hover {
 }
 
 .landing-tagline {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.15rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  color: #4b5563;
+  margin-top: 0.5rem;
   text-shadow: 0 1px 12px rgba(255, 255, 255, 0.95);
 }
 
@@ -88,7 +90,7 @@ a:hover {
   padding: 0.85rem 2.25rem;
   font-size: 1rem;
   font-weight: 500;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   color: #fff;
   background: #2563eb;
   border: none;
@@ -152,7 +154,7 @@ a:hover {
 }
 
 .float-card-label {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.7rem;
   font-weight: 600;
   opacity: 1;
@@ -317,7 +319,7 @@ a:hover {
 }
 
 .auth-title {
-  font-family: 'Libre Baskerville', serif;
+  font-family: 'DM Serif Display', serif;
   font-size: 1.65rem;
   font-weight: 700;
   color: #1a1a2e;
@@ -325,7 +327,7 @@ a:hover {
 }
 
 .auth-subtitle {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   color: #6b7280;
   margin-bottom: 1.5rem;
@@ -341,7 +343,7 @@ a:hover {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   font-weight: 600;
   color: #374151;
@@ -357,7 +359,7 @@ a:hover {
 
 .auth-input {
   padding: 0.7rem 0.85rem;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   border: 1.5px solid #e5e7eb;
   border-radius: 10px;
@@ -378,7 +380,7 @@ a:hover {
 .auth-submit {
   margin-top: 0.4rem;
   padding: 0.75rem;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-weight: 600;
   color: #fff;
@@ -395,7 +397,7 @@ a:hover {
 
 .auth-switch {
   text-align: center;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   color: #6b7280;
   margin-top: 0.25rem;
@@ -408,7 +410,7 @@ a:hover {
   font-weight: 600;
   cursor: pointer;
   font-size: 0.85rem;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 .auth-switch-btn:hover {
   text-decoration: underline;
@@ -417,7 +419,7 @@ a:hover {
 /* Language dropdown */
 .auth-select {
   padding: 0.7rem 0.85rem;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   border: 1.5px solid #e5e7eb;
   border-radius: 10px;
@@ -494,7 +496,7 @@ a:hover {
 }
 
 .auth-slider-label {
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.78rem;
   color: #9ca3af;
   transition: color 0.15s, font-weight 0.15s;
@@ -514,7 +516,7 @@ a:hover {
 .auth-back {
   flex: 0 0 auto;
   padding: 0.75rem 1.25rem;
-  font-family: 'Source Sans 3', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   font-weight: 500;
   color: #6b7280;

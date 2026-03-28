@@ -45,12 +45,13 @@ wss.on("connection", (client: WebSocket) => {
     // First message from client must be init with documentId
     if (msg.type === "init" && !gemini) {
       const documentId = msg.documentId;
+      const language = msg.language;
       if (!documentId || typeof documentId !== "string") {
         client.send(JSON.stringify({ error: "Invalid documentId" }));
         client.close();
         return;
       }
-      console.log(`Init for document: ${documentId}`);
+      console.log(`Init for document: ${documentId}, language: ${language || "English"}`);
 
       // Fetch document text from Supabase
       const { data: doc, error } = await supabase
@@ -88,7 +89,7 @@ wss.on("connection", (client: WebSocket) => {
             systemInstruction: {
               parts: [
                 {
-                  text: `${SYSTEM_PROMPT}\n\nDocument content:\n${docText}`,
+                  text: `${SYSTEM_PROMPT}${language && language !== "English" ? `\nIMPORTANT: Speak and respond in ${language}.` : ""}\n\nDocument content:\n${docText}`,
                 },
               ],
             },

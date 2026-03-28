@@ -47,9 +47,14 @@ ${documentText.slice(0, 8000)}`;
 export async function answerQuestion(
   documentText: string,
   question: string,
-  history: { role: "user" | "model"; parts: { text: string }[] }[]
+  history: { role: "user" | "model"; parts: { text: string }[] }[],
+  language?: string
 ): Promise<string> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  const langInstruction = language && language !== "English"
+    ? `\nIMPORTANT: Respond in ${language}. If the user writes in ${language}, respond in that language.`
+    : "";
 
   const chat = model.startChat({
     history: [
@@ -58,7 +63,7 @@ export async function answerQuestion(
         parts: [
           {
             text: `You are a plain-language legal assistant. The user has uploaded a legal document.
-Answer questions about it clearly and simply. Avoid jargon. Here is the document:\n\n${documentText.slice(0, 8000)}`,
+Answer questions about it clearly and simply. Avoid jargon.${langInstruction} Here is the document:\n\n${documentText.slice(0, 8000)}`,
           },
         ],
       },
