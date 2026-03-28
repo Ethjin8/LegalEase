@@ -1,7 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import WorkspaceView from "@/components/WorkspaceView";
+import AuthModal from "@/components/AuthModal";
 
 type IconType = "globe" | "house" | "briefcase" | "dollar" | "shield" | "scales" | "heart" | "graduation";
 
@@ -123,17 +124,29 @@ function Waveform() {
 }
 
 type TransitionPhase = "idle" | "closing" | "opening";
+type HomeView = "landing" | "workspace";
 
 export default function HomePage() {
-  const router = useRouter();
   const [phase, setPhase] = useState<TransitionPhase>("idle");
+  const [view, setView] = useState<HomeView>("landing");
+  const [showAuth, setShowAuth] = useState(false);
 
   function handleGetStarted() {
+    setShowAuth(true);
+  }
+
+  function handleAuthComplete() {
+    setShowAuth(false);
     if (phase !== "idle") return;
     setPhase("closing");
+
     setTimeout(() => {
-      sessionStorage.setItem("doReveal", "1");
-      router.push("/workspace");
+      setView("workspace");
+      setPhase("opening");
+
+      setTimeout(() => {
+        setPhase("idle");
+      }, 700);
     }, 700);
   }
 
@@ -151,48 +164,59 @@ export default function HomePage() {
         </div>
       )}
 
-      <main className="landing">
-        <div className="card-layer">
-          {CARDS.map((card, i) => (
-            <div
-              key={i}
-              className="float-card"
-              style={{
-                top: card.top,
-                left: card.left,
-                background: `${card.color}30`,
-                border: `1px solid ${card.color}50`,
-                color: card.color,
-                animation: card.animation,
-              }}
-            >
-              <CardIcon type={card.icon} />
-              <span className="float-card-label" style={{ color: card.color }}>
-                {card.category}
-              </span>
-              <div className="float-card-lines">
-                <div className="float-card-line" style={{ background: card.color, width: "90%" }} />
-                <div className="float-card-line" style={{ background: card.color, width: "70%" }} />
-                <div className="float-card-line" style={{ background: card.color, width: "80%" }} />
-              </div>
-            </div>
-          ))}
-        </div>
+      {showAuth && (
+        <AuthModal
+          onClose={() => setShowAuth(false)}
+          onComplete={handleAuthComplete}
+        />
+      )}
 
-        <div className="landing-content">
-          <h1 className="landing-title">Docu<span style={{ color: "#2563eb" }}>Mentor</span></h1>
-          <p className="landing-tagline">
-            Understand your legal documents — no jargon, no stress.
-          </p>
-          <Waveform />
-          <button
-            className="landing-cta"
-            onClick={handleGetStarted}
-          >
-            Click here to get started
-          </button>
-        </div>
-      </main>
+      {view === "landing" ? (
+        <main className="landing">
+          <div className="card-layer">
+            {CARDS.map((card, i) => (
+              <div
+                key={i}
+                className="float-card"
+                style={{
+                  top: card.top,
+                  left: card.left,
+                  background: `${card.color}30`,
+                  border: `1px solid ${card.color}50`,
+                  color: card.color,
+                  animation: card.animation,
+                }}
+              >
+                <CardIcon type={card.icon} />
+                <span className="float-card-label" style={{ color: card.color }}>
+                  {card.category}
+                </span>
+                <div className="float-card-lines">
+                  <div className="float-card-line" style={{ background: card.color, width: "90%" }} />
+                  <div className="float-card-line" style={{ background: card.color, width: "70%" }} />
+                  <div className="float-card-line" style={{ background: card.color, width: "80%" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="landing-content">
+            <h1 className="landing-title">Docu<span style={{ color: "#2563eb" }}>Mentor</span></h1>
+            <p className="landing-tagline">
+              Understand your legal documents — no jargon, no stress.
+            </p>
+            <Waveform />
+            <button
+              className="landing-cta"
+              onClick={handleGetStarted}
+            >
+              Click here to get started
+            </button>
+          </div>
+        </main>
+      ) : (
+        <WorkspaceView />
+      )}
     </>
   );
 }
