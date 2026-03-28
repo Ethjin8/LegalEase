@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
-    "@supabase/ssr": "^0.5.2",
+    "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.49.2",
-    "next": "15.2.4",
+    "next": "^15.5.14",
     "pdf-parse": "^1.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -24,6 +24,7 @@
     "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "supabase": "^2.84.4",
     "typescript": "^5"
   }
 }
