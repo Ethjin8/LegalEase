@@ -2,72 +2,51 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type AnimPhase = "idle" | "disappear" | "done";
+type AnimPhase = "appear" | "idle";
 
 const IDLE_FRAMES = Array.from({ length: 36 }, (_, i) => `/animation/Untitled_Artwork-${i + 1}.png`);
 const DISAPPEAR_FRAMES = Array.from({ length: 20 }, (_, i) => `/animation/disapear/Untitled_Artwork-${i + 11}.png`);
+const APPEAR_FRAMES = [...DISAPPEAR_FRAMES].reverse();
 const FPS = 7;
-const IDLE_LOOPS = 1;
 
 interface Props {
-  onDisappearStart?: () => void;
-  onDone?: () => void;
+  onAppearMidpoint?: () => void;
 }
 
-export default function MascotAnimation({ onDisappearStart, onDone }: Props) {
-  const [phase, setPhase] = useState<AnimPhase>("idle");
+export default function MascotAnimation({ onAppearMidpoint }: Props) {
+  const [phase, setPhase] = useState<AnimPhase>("appear");
   const [frameIdx, setFrameIdx] = useState(0);
-  const loopCount = useRef(0);
-  const calledDisappear = useRef(false);
-  const calledDone = useRef(false);
+  const calledMidpoint = useRef(false);
+  const cbRef = useRef({ onAppearMidpoint });
+  cbRef.current = { onAppearMidpoint };
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (phase === "idle") {
+      if (phase === "appear") {
         setFrameIdx((prev) => {
           const next = prev + 1;
-          if (next >= IDLE_FRAMES.length) {
-            loopCount.current += 1;
-            if (loopCount.current >= IDLE_LOOPS) {
-              setPhase("disappear");
-              return 0;
-            }
+          if (next >= APPEAR_FRAMES.length) {
+            setPhase("idle");
             return 0;
           }
           return next;
         });
-      } else if (phase === "disappear") {
-        setFrameIdx((prev) => {
-          const next = prev + 1;
-          if (next >= DISAPPEAR_FRAMES.length) {
-            setPhase("done");
-            return prev;
-          }
-          return next;
-        });
+      } else if (phase === "idle") {
+        setFrameIdx((prev) => (prev + 1) % IDLE_FRAMES.length);
       }
     }, 1000 / FPS);
 
     return () => clearInterval(interval);
-  }, [phase, onDisappearStart]);
+  }, [phase]);
 
   useEffect(() => {
-    if (phase === "disappear" && frameIdx === 9 && !calledDisappear.current) {
-      calledDisappear.current = true;
-      onDisappearStart?.();
+    if (phase === "appear" && frameIdx === 9 && !calledMidpoint.current) {
+      calledMidpoint.current = true;
+      cbRef.current.onAppearMidpoint?.();
     }
-  }, [phase, frameIdx, onDisappearStart]);
+  }, [phase, frameIdx]);
 
-  useEffect(() => {
-    if (phase === "done" && !calledDone.current) {
-      calledDone.current = true;
-      onDone?.();
-    }
-  }, [phase, onDone]);
-
-  if (phase === "done") return null;
-
-  const src = phase === "idle" ? IDLE_FRAMES[frameIdx] : DISAPPEAR_FRAMES[frameIdx];
+  const src = phase === "appear" ? APPEAR_FRAMES[frameIdx] : IDLE_FRAMES[frameIdx];
 
   return (
     <img

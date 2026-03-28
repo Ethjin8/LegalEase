@@ -140,8 +140,7 @@ function Waveform({ width }: { width: number }) {
 export default function HomePage() {
   const router = useRouter();
   const [showAuth, setShowAuth] = useState(false);
-  const [mascotDisappearing, setMascotDisappearing] = useState(false);
-  const [mascotDone, setMascotDone] = useState(false);
+  const [mascotAppeared, setMascotAppeared] = useState(false);
 
   function handleGetStarted() {
     setShowAuth(true);
@@ -200,19 +199,9 @@ export default function HomePage() {
             Understand your legal documents — no jargon, no stress.
           </p>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{
-              width: mascotDisappearing ? 0 : 60,
-              marginRight: mascotDisappearing ? 0 : 16,
-              overflow: "hidden",
-              flexShrink: 0,
-              transition: "width 2.5s cubic-bezier(0.25, 0, 0.1, 1), margin-right 2.5s cubic-bezier(0.25, 0, 0.1, 1)",
-            }}>
-              <MascotAnimation
-                onDisappearStart={() => setMascotDisappearing(true)}
-                onDone={() => setMascotDone(true)}
-              />
-            </div>
-            <Waveform width={mascotDisappearing ? 240 : 164} />
+            <MascotAnimation onAppearMidpoint={() => setMascotAppeared(true)} />
+            <div style={{ width: 16, flexShrink: 0 }} />
+            <Waveform width={mascotAppeared ? 164 : 240} />
           </div>
           <button
             className="landing-cta"
