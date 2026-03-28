@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import TransitionReveal from "@/components/TransitionReveal";
 
 export const metadata: Metadata = {
   title: "DocuMentor — Understand Your Legal Documents",
@@ -10,7 +11,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <TransitionReveal />
+        {children}
+      </body>
     </html>
   );
 }

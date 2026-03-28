@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import AuthModal from "@/components/AuthModal";
 
@@ -125,15 +125,7 @@ function Waveform() {
 
 export default function HomePage() {
   const router = useRouter();
-  const [closing, setClosing] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
 
   function handleGetStarted() {
     setShowAuth(true);
@@ -141,23 +133,16 @@ export default function HomePage() {
 
   function handleAuthComplete() {
     setShowAuth(false);
-    if (closing) return;
-    setClosing(true);
-    timerRef.current = setTimeout(() => {
-      sessionStorage.setItem("doReveal", "1");
+    // Tell the root-layout TransitionReveal to start closing
+    window.dispatchEvent(new Event("curtain-close"));
+    // Navigate after the curtain has fully closed (700ms animation)
+    setTimeout(() => {
       router.push("/workspace");
     }, 700);
   }
 
   return (
     <>
-      {closing && (
-        <div className="transition-overlay active">
-          <div className="transition-panel transition-panel--left" />
-          <div className="transition-panel transition-panel--right" />
-        </div>
-      )}
-
       {showAuth && (
         <AuthModal
           onClose={() => setShowAuth(false)}
