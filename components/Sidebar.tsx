@@ -39,6 +39,15 @@ export default function Sidebar() {
   const [search, setSearch] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function deleteDoc(id: string) {
+    setDeletingId(id);
+    await fetch(`/api/documents/${id}`, { method: "DELETE" });
+    setDocs((prev) => prev.filter((d) => d.id !== id));
+    if (pathname === `/document/${id}`) router.push("/workspace");
+    setDeletingId(null);
+  }
 
   useEffect(() => {
     fetch("/api/documents")
@@ -199,36 +208,84 @@ export default function Sidebar() {
                 ? doc.file_name.slice(0, 26) + "…"
                 : doc.file_name;
 
+              const isDeleting = deletingId === doc.id;
+
               return (
-                <Link
+                <div
                   key={doc.id}
-                  href={`/document/${doc.id}`}
-                  title={doc.file_name}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.55rem",
-                    padding: "0.5rem 0.75rem",
-                    borderRadius: 8,
-                    textDecoration: "none",
-                    fontSize: "0.875rem",
-                    color: active ? "#2563eb" : "#374151",
-                    background: active ? "#eff6ff" : "transparent",
-                    fontWeight: active ? 600 : 400,
-                    transition: "background 0.12s",
-                  }}
+                  style={{ position: "relative", display: "flex", alignItems: "center", borderRadius: 8 }}
+                  className="doc-row"
                   onMouseEnter={(e) => {
-                    if (!active) (e.currentTarget as HTMLElement).style.background = "#f9fafb";
+                    const btn = e.currentTarget.querySelector<HTMLElement>(".doc-delete");
+                    if (btn) btn.style.opacity = "1";
+                    if (!active) e.currentTarget.style.background = "#f9fafb";
                   }}
                   onMouseLeave={(e) => {
-                    if (!active) (e.currentTarget as HTMLElement).style.background = "transparent";
+                    const btn = e.currentTarget.querySelector<HTMLElement>(".doc-delete");
+                    if (btn) btn.style.opacity = "0";
+                    if (!active) e.currentTarget.style.background = "transparent";
                   }}
                 >
-                  <span style={{ color: active ? "#2563eb" : "#9ca3af" }}>
-                    <FileIcon />
-                  </span>
-                  {name}
-                </Link>
+                  <Link
+                    href={`/document/${doc.id}`}
+                    title={doc.file_name}
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.55rem",
+                      padding: "0.5rem 0.75rem",
+                      borderRadius: 8,
+                      textDecoration: "none",
+                      fontSize: "0.875rem",
+                      color: active ? "#2563eb" : "#374151",
+                      background: active ? "#eff6ff" : "transparent",
+                      fontWeight: active ? 600 : 400,
+                      minWidth: 0,
+                    }}
+                  >
+                    <span style={{ color: active ? "#2563eb" : "#9ca3af", flexShrink: 0 }}>
+                      <FileIcon />
+                    </span>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {name}
+                    </span>
+                  </Link>
+                  <button
+                    className="doc-delete"
+                    onClick={() => deleteDoc(doc.id)}
+                    disabled={isDeleting}
+                    title="Delete document"
+                    style={{
+                      position: "absolute",
+                      right: "0.4rem",
+                      opacity: 0,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "0.25rem",
+                      borderRadius: 5,
+                      color: "#9ca3af",
+                      display: "flex",
+                      alignItems: "center",
+                      transition: "opacity 0.15s, color 0.15s",
+                      flexShrink: 0,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#dc2626")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#9ca3af")}
+                  >
+                    {isDeleting ? (
+                      <span style={{ fontSize: "0.7rem" }}>…</span>
+                    ) : (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                        <path d="M10 11v6M14 11v6" />
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -255,7 +312,7 @@ export default function Sidebar() {
             fontWeight: pathname === "/settings" ? 600 : 400,
           }}
         >
-          <span style={{ opacity: 0.7 }}><PrefsIcon /></span>
+          <span style={{ opacity: 0.7, display: "flex", alignItems: "center" }}><PrefsIcon /></span>
           Settings
         </Link>
       </div>
