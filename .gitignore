@@ -4,3 +4,4 @@ node_modules
 next-env.d.ts
 **/.DS_Store
 tsconfig.tsbuildinfo
+.claude/settings.local.json

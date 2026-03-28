@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import FAQPanel from "@/components/FAQPanel";
@@ -16,6 +16,8 @@ const VIEW_OPTIONS: { value: View; label: string }[] = [
   { value: "raw",          label: "Full Document Text" },
   { value: "ask",          label: "Ask AI" },
 ];
+import DocumentDetailView from "@/components/DocumentDetailView";
+import type { Document, FAQ } from "@/types";
 
 export default function DocumentPage() {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +25,6 @@ export default function DocumentPage() {
 
   const [doc, setDoc] = useState<Document | null>(null);
   const [faq, setFaq] = useState<FAQ | null>(null);
-  const [view, setView] = useState<View>("faq");
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -93,31 +94,6 @@ export default function DocumentPage() {
 
     load();
   }, [id]);
-
-  async function sendQuestion() {
-    if (!question.trim() || asking || !id) return;
-    const userMsg: ChatMessage = { role: "user", text: question.trim(), timestamp: new Date() };
-    setMessages(prev => [...prev, userMsg]);
-    setQuestion("");
-    setAsking(true);
-    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ documentId: id, question: userMsg.text, history: messages }),
-      });
-      const json = await res.json();
-      const aiMsg: ChatMessage = { role: "model", text: json.answer ?? json.error ?? "No response.", timestamp: new Date() };
-      setMessages(prev => [...prev, aiMsg]);
-    } catch {
-      setMessages(prev => [...prev, { role: "model", text: "Something went wrong. Please try again.", timestamp: new Date() }]);
-    } finally {
-      setAsking(false);
-      setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-    }
-  }
 
   if (loading) return (
     <div style={{ padding: "3rem", color: "#9ca3af", fontSize: "0.9rem" }}>Loading…</div>
@@ -392,4 +368,5 @@ export default function DocumentPage() {
       </div>
     </div>
   );
+  return <DocumentDetailView doc={doc!} faq={faq} />;
 }

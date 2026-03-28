@@ -3,16 +3,39 @@
 // ── VoiceChat ────────────────────────────────────────────────────────────────
 // Phase 1: Text-based Q&A (works now)
 // Phase 2: Swap in Gemini Live WebSocket for real-time voice (TODO)
-//
-// To upgrade to voice: replace the sendMessage function with a
-// Gemini Live session using the multimodal live API.
-// Docs: https://ai.google.dev/gemini-api/docs/multimodal-live
 
 import { useState, useRef, useEffect } from "react";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import type { ChatMessage } from "@/types";
 
 interface Props {
   documentId: string;
+}
+
+function TypingIndicator() {
+  return (
+    <div style={{ display: "flex", gap: "4px", alignItems: "center", padding: "0.2rem 0.1rem" }}>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: "#9ca3af",
+            display: "inline-block",
+            animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes bounce {
+          0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+          40% { transform: translateY(-5px); opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
 }
 
 export default function VoiceChat({ documentId }: Props) {
@@ -20,10 +43,11 @@ export default function VoiceChat({ documentId }: Props) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loading]);
 
   async function sendMessage(text: string) {
     if (!text.trim()) return;
@@ -37,57 +61,63 @@ export default function VoiceChat({ documentId }: Props) {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          documentId,
-          question: text,
-          history: messages,
-        }),
+        body: JSON.stringify({ documentId, question: text, history: messages }),
       });
 
       const json = await res.json();
-      const answer = json.answer ?? "Sorry, I couldn't get an answer. Try again.";
+      const answer = json.answer ?? "Sorry, I couldn't get an answer. Please try again.";
 
       setMessages((prev) => [
         ...prev,
         { role: "model", text: answer, timestamp: new Date() },
       ]);
-
-      // TODO Phase 2: speak answer using Gemini Live TTS
-      // speakText(answer);
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "model",
-          text: "Connection error. Please try again.",
-          timestamp: new Date(),
-        },
+        { role: "model", text: "Connection error. Please try again.", timestamp: new Date() },
       ]);
     } finally {
       setLoading(false);
+      inputRef.current?.focus();
     }
   }
 
   return (
     <div
       style={{
-        border: "1px solid #e5e7eb",
+        borderWidth: "1.5px",
+        borderStyle: "solid",
+        borderColor: "#e5e7eb",
         borderRadius: 12,
         display: "flex",
         flexDirection: "column",
         height: 560,
         background: "#fff",
+        overflow: "hidden",
       }}
     >
       {/* Header */}
       <div
         style={{
           padding: "1rem 1.25rem",
-          borderBottom: "1px solid #e5e7eb",
-          fontWeight: 600,
+          borderBottom: "1.5px solid #e5e7eb",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.6rem",
         }}
       >
-        Ask a Question
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        <span style={{
+          fontFamily: "'Source Sans 3', sans-serif",
+          fontWeight: 700,
+          fontSize: "0.95rem",
+          color: "#1a1a2e",
+          letterSpacing: "-0.01em",
+        }}>
+          Ask the Document
+        </span>
       </div>
 
       {/* Messages */}
@@ -95,89 +125,135 @@ export default function VoiceChat({ documentId }: Props) {
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: "1rem",
+          padding: "1.25rem 1rem",
           display: "flex",
           flexDirection: "column",
-          gap: "0.75rem",
+          gap: "1rem",
         }}
       >
         {messages.length === 0 && (
-          <p style={{ color: "#9ca3af", fontSize: "0.9rem", textAlign: "center", marginTop: "2rem" }}>
-            Ask anything about this document — in any language.
-          </p>
+          <div style={{ textAlign: "center", marginTop: "2.5rem", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.5rem" }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <p style={{ color: "#9ca3af", fontSize: "0.88rem", fontFamily: "'Source Sans 3', sans-serif", maxWidth: 220, lineHeight: 1.6 }}>
+              Ask anything about this document — in any language.
+            </p>
+          </div>
         )}
+
         {messages.map((msg, i) => (
           <div
             key={i}
             style={{
               alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
-              maxWidth: "85%",
-              background: msg.role === "user" ? "#2563eb" : "#f3f4f6",
-              color: msg.role === "user" ? "#fff" : "#1f2937",
-              borderRadius: msg.role === "user" ? "12px 12px 2px 12px" : "12px 12px 12px 2px",
-              padding: "0.6rem 0.9rem",
-              fontSize: "0.9rem",
-              lineHeight: 1.6,
+              maxWidth: "88%",
             }}
           >
-            {msg.text}
+            {msg.role === "user" ? (
+              <div style={{
+                background: "linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)",
+                color: "#fff",
+                borderRadius: "14px 14px 3px 14px",
+                padding: "0.65rem 1rem",
+                fontSize: "0.9rem",
+                fontFamily: "'Source Sans 3', sans-serif",
+                lineHeight: 1.6,
+              }}>
+                {msg.text}
+              </div>
+            ) : (
+              <div style={{
+                background: "#f9fafb",
+                borderWidth: "1.5px",
+                borderStyle: "solid",
+                borderColor: "#e5e7eb",
+                borderRadius: "3px 14px 14px 14px",
+                padding: "0.75rem 1rem",
+                fontSize: "0.875rem",
+                fontFamily: "'Merriweather', serif",
+                lineHeight: 1.8,
+                color: "#1a1a2e",
+              }}>
+                <MarkdownRenderer>{msg.text}</MarkdownRenderer>
+              </div>
+            )}
           </div>
         ))}
+
         {loading && (
-          <div
-            style={{
-              alignSelf: "flex-start",
-              background: "#f3f4f6",
-              borderRadius: "12px 12px 12px 2px",
-              padding: "0.6rem 1rem",
-              color: "#6b7280",
-              fontSize: "0.85rem",
-            }}
-          >
-            Thinking...
+          <div style={{
+            alignSelf: "flex-start",
+            background: "#f9fafb",
+            borderWidth: "1.5px",
+            borderStyle: "solid",
+            borderColor: "#e5e7eb",
+            borderRadius: "3px 14px 14px 14px",
+            padding: "0.65rem 1rem",
+          }}>
+            <TypingIndicator />
           </div>
         )}
+
         <div ref={bottomRef} />
       </div>
 
       {/* Input */}
       <div
         style={{
-          padding: "0.75rem",
-          borderTop: "1px solid #e5e7eb",
+          padding: "0.85rem 1rem",
+          borderTop: "1.5px solid #e5e7eb",
           display: "flex",
           gap: "0.5rem",
+          background: "#fafafa",
         }}
       >
         <input
+          ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage(input)}
-          placeholder="Type your question..."
+          placeholder="Ask a question…"
           disabled={loading}
           style={{
             flex: 1,
-            border: "1px solid #d1d5db",
-            borderRadius: 8,
-            padding: "0.5rem 0.75rem",
+            border: "1.5px solid #e5e7eb",
+            borderRadius: 9,
+            padding: "0.65rem 0.85rem",
             fontSize: "0.9rem",
+            fontFamily: "'Source Sans 3', sans-serif",
             outline: "none",
+            background: "#fff",
+            color: "#1a1a2e",
+            transition: "border-color 0.15s, box-shadow 0.15s",
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "#2563eb";
+            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)";
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "#e5e7eb";
+            e.currentTarget.style.boxShadow = "none";
           }}
         />
-        {/* TODO Phase 2: Voice button */}
-        {/* <VoiceButton onTranscript={sendMessage} /> */}
         <button
           onClick={() => sendMessage(input)}
           disabled={loading || !input.trim()}
           style={{
-            background: "#2563eb",
+            background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
             color: "#fff",
             border: "none",
-            borderRadius: 8,
-            padding: "0.5rem 1rem",
-            cursor: "pointer",
-            fontWeight: 500,
+            borderRadius: 9,
+            padding: "0.65rem 1.1rem",
+            cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+            fontWeight: 600,
+            fontSize: "0.9rem",
+            fontFamily: "'Source Sans 3', sans-serif",
             opacity: loading || !input.trim() ? 0.5 : 1,
+            transition: "opacity 0.15s",
+            flexShrink: 0,
           }}
         >
           Send
