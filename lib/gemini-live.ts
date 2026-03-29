@@ -122,7 +122,7 @@ export class GeminiLiveClient {
       silencer.connect(this.audioContext.destination);
 
       // 4. Open WebSocket directly to Gemini using ephemeral token
-      const geminiUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?access_token=${token}`;
+      const geminiUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${token}`;
       this.ws = new WebSocket(geminiUrl);
 
       this.ws.onopen = () => {
@@ -149,9 +149,10 @@ export class GeminiLiveClient {
         this.ws!.send(JSON.stringify(setupMessage));
       };
 
-      this.ws.onmessage = (e: MessageEvent) => {
+      this.ws.onmessage = async (e: MessageEvent) => {
         try {
-          const msg = JSON.parse(e.data);
+          const text = e.data instanceof Blob ? await e.data.text() : e.data;
+          const msg = JSON.parse(text);
           this.handleServerMessage(msg);
         } catch {
           this.emit("error", "Received invalid message from server");

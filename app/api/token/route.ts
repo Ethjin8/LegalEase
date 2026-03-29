@@ -1,5 +1,6 @@
 // app/api/token/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@/lib/supabase/server";
 import { buildSystemPrompt, getLanguageCode } from "@/lib/voice-config";
 
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Document not found" }, { status: 404 });
   }
 
-  // Create ephemeral token via Gemini API
+  // Create ephemeral token via Gemini SDK
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
@@ -34,35 +35,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const tokenRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1alpha/auth_tokens?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+  try {
+    const client = new GoogleGenAI({ apiKey });
+    const token = await client.authTokens.create({
+      config: {
         uses: 1,
-        expire_time: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-      }),
-    },
-  );
+        expireTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        httpOptions: { apiVersion: "v1alpha" },
+      },
+    });
 
-  if (!tokenRes.ok) {
-    const detail = await tokenRes.text();
-    console.error("Ephemeral token creation failed:", tokenRes.status, detail);
+    const docText = doc.raw_text?.slice(0, 8000) ?? "";
+    const systemPrompt = `${buildSystemPrompt(language, readingLevel)}\n\nDocument content:\n${docText}`;
+
+    return NextResponse.json({
+      token: token.name,
+      systemPrompt,
+      languageCode: getLanguageCode(language),
+      voiceName: "Puck",
+    });
+  } catch (err: any) {
+    console.error("Ephemeral token creation failed:", err.message);
     return NextResponse.json(
       { error: "Failed to create token" },
       { status: 500 },
     );
   }
-
-  const tokenData = await tokenRes.json();
-  const docText = doc.raw_text?.slice(0, 8000) ?? "";
-  const systemPrompt = `${buildSystemPrompt(language, readingLevel)}\n\nDocument content:\n${docText}`;
-
-  return NextResponse.json({
-    token: tokenData.name,
-    systemPrompt,
-    languageCode: getLanguageCode(language),
-    voiceName: "Puck",
-  });
 }

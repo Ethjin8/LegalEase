@@ -16,9 +16,13 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-// Mock global fetch for Gemini token endpoint
-const mockFetch = vi.fn();
-vi.stubGlobal("fetch", mockFetch);
+// Mock @google/genai SDK
+const mockAuthTokensCreate = vi.fn();
+vi.mock("@google/genai", () => ({
+  GoogleGenAI: class {
+    authTokens = { create: mockAuthTokensCreate };
+  },
+}));
 
 // Set env vars
 vi.stubEnv("GEMINI_API_KEY", "test-api-key");
@@ -56,10 +60,7 @@ describe("POST /api/token", () => {
       data: { raw_text: "This is a lease agreement..." },
       error: null,
     });
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ name: "ephemeral-token-abc" }),
-    });
+    mockAuthTokensCreate.mockResolvedValue({ name: "ephemeral-token-abc" });
 
     const res = await POST(makeRequest({
       documentId: "doc-123",
@@ -76,11 +77,13 @@ describe("POST /api/token", () => {
     expect(json.languageCode).toBe("es-US");
     expect(json.voiceName).toBe("Puck");
 
-    // Verify fetch was called with correct Gemini endpoint
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining("generativelanguage.googleapis.com"),
-      expect.objectContaining({ method: "POST" }),
-    );
+    // Verify SDK was called with correct config
+    expect(mockAuthTokensCreate).toHaveBeenCalledWith({
+      config: expect.objectContaining({
+        uses: 1,
+        httpOptions: { apiVersion: "v1alpha" },
+      }),
+    });
   });
 
   it("returns 500 when token creation fails", async () => {
@@ -88,11 +91,7 @@ describe("POST /api/token", () => {
       data: { raw_text: "Some doc text" },
       error: null,
     });
-    mockFetch.mockResolvedValue({
-      ok: false,
-      status: 403,
-      text: () => Promise.resolve("Forbidden"),
-    });
+    mockAuthTokensCreate.mockRejectedValue(new Error("API error"));
 
     const res = await POST(makeRequest({ documentId: "doc-123" }));
     expect(res.status).toBe(500);
