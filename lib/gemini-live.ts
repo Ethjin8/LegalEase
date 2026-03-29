@@ -107,8 +107,7 @@ export class GeminiLiveClient {
       silencer.connect(this.audioContext.destination);
 
       // Open WebSocket to proxy
-      const proxyPort = process.env.NEXT_PUBLIC_PROXY_PORT ?? "3001";
-      const proxyUrl = `ws://localhost:${proxyPort}`;
+      const proxyUrl = process.env.NEXT_PUBLIC_PROXY_URL ?? `ws://localhost:3001`;
       this.ws = new WebSocket(proxyUrl);
 
       this.ws.onopen = () => {

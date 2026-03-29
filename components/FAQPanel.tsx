@@ -65,6 +65,8 @@ function FAQItem({
             background: isOpen ? "#dbeafe" : "#f3f4f6",
             color: isOpen ? "#2563eb" : "#6b7280",
             fontSize: "1rem",
+            lineHeight: 1,
+            paddingBottom: 1,
             flexShrink: 0,
             transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
             transition: "transform 0.25s ease, background 0.2s, color 0.2s",
