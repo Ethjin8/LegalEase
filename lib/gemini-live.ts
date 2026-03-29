@@ -1,3 +1,4 @@
+// lib/gemini-live.ts
 export type VoiceState = "idle" | "connecting" | "listening" | "thinking" | "speaking";
 
 type EventMap = {
@@ -62,11 +63,25 @@ export class GeminiLiveClient {
     this.setState("connecting");
 
     try {
-      // Set up audio context and worklet
+      // 1. Fetch ephemeral token and config from our API
+      const tokenRes = await fetch("/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentId, language, readingLevel }),
+      });
+
+      if (!tokenRes.ok) {
+        const err = await tokenRes.json().catch(() => ({ error: "Failed to get token" }));
+        throw new Error(err.error || "Failed to get token");
+      }
+
+      const { token, systemPrompt, languageCode, voiceName } = await tokenRes.json();
+
+      // 2. Set up audio context and worklet
       this.audioContext = new AudioContext({ sampleRate: 48000 });
       await this.audioContext.audioWorklet.addModule("/pcm-worklet.js");
 
-      // Get mic access
+      // 3. Get mic access
       this.mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 48000 },
       });
@@ -81,7 +96,7 @@ export class GeminiLiveClient {
 
       this.workletNode = new AudioWorkletNode(this.audioContext, "pcm-processor");
 
-      // When worklet sends a PCM chunk, forward it to proxy
+      // When worklet sends a PCM chunk, forward it directly to Gemini
       this.workletNode.port.onmessage = (e: MessageEvent) => {
         if (this.ws?.readyState === WebSocket.OPEN && this.state === "listening") {
           const pcmBuffer: ArrayBuffer = e.data.pcm;
@@ -106,12 +121,32 @@ export class GeminiLiveClient {
       this.workletNode.connect(silencer);
       silencer.connect(this.audioContext.destination);
 
-      // Open WebSocket to proxy
-      const proxyUrl = process.env.NEXT_PUBLIC_PROXY_URL ?? `ws://localhost:3001`;
-      this.ws = new WebSocket(proxyUrl);
+      // 4. Open WebSocket directly to Gemini using ephemeral token
+      const geminiUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?access_token=${token}`;
+      this.ws = new WebSocket(geminiUrl);
 
       this.ws.onopen = () => {
-        this.ws!.send(JSON.stringify({ type: "init", documentId, language, readingLevel }));
+        // Send setup message with model config and system prompt
+        const setupMessage = {
+          setup: {
+            model: "models/gemini-3.1-flash-live-preview",
+            generationConfig: {
+              responseModalities: ["AUDIO"],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: {
+                    voiceName: voiceName,
+                  },
+                },
+                languageCode: languageCode,
+              },
+            },
+            systemInstruction: {
+              parts: [{ text: systemPrompt }],
+            },
+          },
+        };
+        this.ws!.send(JSON.stringify(setupMessage));
       };
 
       this.ws.onmessage = (e: MessageEvent) => {
@@ -144,15 +179,15 @@ export class GeminiLiveClient {
   }
 
   private handleServerMessage(msg: any) {
-    // Proxy ready signal
-    if (msg.type === "ready") {
+    // Gemini setup acknowledgment — now ready to stream
+    if (msg.setupComplete !== undefined) {
       this.setState("listening");
       return;
     }
 
-    // Error from proxy
+    // Error from Gemini
     if (msg.error) {
-      this.emit("error", msg.error);
+      this.emit("error", msg.error.message || "Gemini error");
       this.disconnect();
       return;
     }
