@@ -1,20 +1,18 @@
 # LegalEase
 
-An AI-powered legal document assistant that makes complex legal paperwork understandable through plain-language explanations, conversational voice AI, and real-time legal research.
+An AI-powered legal document assistant that makes complex legal paperwork understandable through plain-language explanations and conversational voice AI.
 
-Upload a document. Get an instant FAQ. Talk to it. Get connected to resources that can help.
+Upload a document. Get an instant FAQ. Talk to it.
 
 ---
 
 ## Features
 
-- **Instant FAQ Generation** — Upload a PDF, image, or text file and get a plain-language summary, key dates, obligations, and Q&A within seconds
+- **Instant FAQ Generation** — Upload a PDF or text file and get a plain-language summary, key dates, obligations, and Q&A within seconds
 - **Voice Conversations** — Talk to your document using Gemini Live with real-time voice input and text-to-speech responses
 - **Text Chat** — Ask follow-up questions via text with full conversation history
-- **Deep Research** — Background AI research automatically surfaces relevant legal definitions, resources, and aid organizations
-- **50+ Languages** — Full multilingual support for UI, voice, and AI responses
+- **40+ Languages** — Full multilingual support for UI, voice, and AI responses
 - **Reading Level Adaptation** — Responses adjust from simple (no jargon) to detailed (legal context included)
-- **OCR Support** — Extract text from scanned PDFs and images via Tesseract.js
 
 ### Supported Document Types
 
@@ -36,9 +34,9 @@ Upload a document. Get an instant FAQ. Talk to it. Get connected to resources th
 | Framework | Next.js 15 (App Router), React 19, TypeScript |
 | Database & Auth | Supabase (PostgreSQL + Auth + Storage) |
 | AI | Google Gemini 2.5 Flash (text), Gemini Live (voice) |
-| Text Extraction | pdf-parse, Tesseract.js |
+| Text Extraction | pdf-parse |
 | Voice | WebSocket proxy to Gemini Live API, Web Audio API |
-| Deployment | Railway (Nixpacks) |
+| Deployment | Vercel (Next.js app), Railway (voice proxy) |
 
 ---
 
@@ -96,13 +94,11 @@ Client (Browser)
       │
       ├── FAQ Panel      ← Summary, key dates, obligations, expandable Q&A
       ├── Voice Chat     ← Gemini Live via WebSocket proxy
-      ├── Text Chat      ← REST API with conversation history
-      └── Research Panel ← Auto-inferred legal topic research
+      └── Text Chat      ← REST API with conversation history
 
 API Routes
-├── /api/upload          ← File upload → OCR → FAQ generation → Supabase insert
-├── /api/chat            ← Text Q&A with language/reading level/region context
-└── /api/research        ← Deep research on inferred legal topics
+├── /api/upload          ← File upload → text extraction → FAQ generation → Supabase insert
+└── /api/chat            ← Text Q&A with language/reading level/region context
 
 Voice Pipeline
 Browser ←WebSocket→ gemini-live-proxy (port 3001) ←WebSocket→ Gemini Live API
@@ -117,7 +113,6 @@ Browser ←WebSocket→ gemini-live-proxy (port 3001) ←WebSocket→ Gemini Liv
 | `documents` | File metadata, raw extracted text |
 | `faqs` | Generated summaries, Q&A items, key dates, obligations |
 | `chat_messages` | Conversation history per document |
-| `research_results` | AI research findings with sources |
 
 ---
 
@@ -128,9 +123,8 @@ app/
   page.tsx                    Landing page
   layout.tsx                  Root layout
   api/
-    upload/route.ts           OCR → FAQ generation → DB insert
+    upload/route.ts           Text extraction → FAQ generation → DB insert
     chat/route.ts             Text Q&A endpoint
-    research/route.ts         Deep legal research endpoint
 components/
   AuthModal.tsx               Login/signup with language, region, reading level
   Sidebar.tsx                 Document list, search, upload, settings
@@ -139,12 +133,11 @@ components/
   FAQPanel.tsx                FAQ accordion with summary, dates, obligations
   VoiceChat.tsx               Voice + text chat interface
   MicOverlay.tsx              Mic button with state animations
-  ResearchPanel.tsx           Auto-research findings and resource links
   MascotAnimation.tsx         Landing page character animation
 lib/
-  gemini.ts                   AI functions (generateFAQ, answerQuestion, runDeepResearch)
+  gemini.ts                   AI functions (generateFAQ, answerQuestion)
   gemini-live.ts              Gemini Live WebSocket client (voice)
-  ocr.ts                      PDF and image text extraction
+  ocr.ts                      Text extraction utilities (PDF via pdf-parse)
   supabase/                   Browser + server Supabase clients
 server/
   gemini-live-proxy.ts        WebSocket proxy between browser and Gemini Live API
