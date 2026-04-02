@@ -11,7 +11,7 @@ export async function generateFAQ(documentText: string): Promise<{
   key_dates: string[];
   obligations: string[];
 }> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
   const prompt = `You are a plain-language legal assistant named LegalEase helping people understand documents.
 
@@ -52,7 +52,7 @@ export async function answerQuestion(
   readingLevel?: number,
   region?: string
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
   const lang = language && language !== "English" ? language : null;
 
@@ -94,6 +94,31 @@ Answer questions about it clearly and simply. Avoid jargon.${levelHint}${regionH
   return result.response.text();
 }
 
+// ── OCR via Gemini vision ──────────────────────────────────────────────────
+
+export async function extractTextWithGemini(
+  base64Data: string,
+  mimeType: string
+): Promise<string> {
+  const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+
+  const result = await model.generateContent([
+    {
+      inlineData: {
+        data: base64Data,
+        mimeType,
+      },
+    },
+    {
+      text: `Extract ALL text from this document image exactly as it appears.
+Preserve the original structure, paragraphs, and formatting as closely as possible.
+Return ONLY the extracted text with no commentary, labels, or markdown formatting.`,
+    },
+  ]);
+
+  return result.response.text();
+}
+
 // ── Deep research ───────────────────────────────────────────────────────────
 
 export async function runDeepResearch(
@@ -101,7 +126,7 @@ export async function runDeepResearch(
   topic: string
 ): Promise<{ findings: string; sources: { title: string; url: string }[] }> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-3-flash-preview",
     // TODO: enable grounding with Google Search when available in your region
     // tools: [{ googleSearch: {} }],
   });

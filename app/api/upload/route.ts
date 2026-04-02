@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateFAQ } from "@/lib/gemini";
-import pdfParse from "pdf-parse";
+import { extractTextFromFile } from "@/lib/ocr";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,16 +14,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // 1. Extract text
-    let rawText = "";
-    const ext = file.name.split(".").pop()?.toLowerCase();
-
-    if (ext === "pdf") {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const data = await pdfParse(buffer);
-      rawText = data.text;
-    } else {
-      rawText = await file.text();
+    // 1. Extract text (PDF, image, or plain text)
+    let rawText: string;
+    try {
+      rawText = await extractTextFromFile(file);
+    } catch {
+      return NextResponse.json(
+        { error: "Something went wrong while reading your document. Please try again shortly." },
+        { status: 502 }
+      );
     }
 
     if (!rawText.trim()) {
@@ -34,7 +33,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Upload file to Supabase Storage
-    const filePath = `documents/${Date.now()}_${file.name}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const filePath = `documents/${Date.now()}_${safeName}`;
     const { error: storageError } = await supabase.storage
       .from("documents")
       .upload(filePath, file);

@@ -1,5 +1,9 @@
 // OCR + text extraction utilities
-// Supports: PDF (pdf-parse), images (Tesseract.js), plain text
+// Supports: PDF (pdf-parse, Gemini fallback for scanned), images (Gemini vision), plain text
+
+import { extractTextWithGemini } from "./gemini";
+
+const IMAGE_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "bmp"];
 
 export async function extractTextFromFile(file: File): Promise<string> {
   const ext = file.name.split(".").pop()?.toLowerCase();
@@ -8,7 +12,7 @@ export async function extractTextFromFile(file: File): Promise<string> {
     return extractFromPDF(file);
   }
 
-  if (["jpg", "jpeg", "png", "webp", "gif", "bmp"].includes(ext ?? "")) {
+  if (IMAGE_EXTENSIONS.includes(ext ?? "")) {
     return extractFromImage(file);
   }
 
@@ -17,20 +21,23 @@ export async function extractTextFromFile(file: File): Promise<string> {
 }
 
 async function extractFromPDF(file: File): Promise<string> {
-  // pdf-parse runs server-side — this helper is called from the API route
-  // Import dynamically to avoid bundling on the client
   const pdfParse = (await import("pdf-parse")).default;
   const buffer = Buffer.from(await file.arrayBuffer());
   const data = await pdfParse(buffer);
-  return data.text;
+
+  // If pdf-parse extracted meaningful text, use it
+  if (data.text.trim().length > 50) {
+    return data.text;
+  }
+
+  // Scanned/image-based PDF — fall back to Gemini vision
+  const base64 = buffer.toString("base64");
+  return extractTextWithGemini(base64, "application/pdf");
 }
 
 async function extractFromImage(file: File): Promise<string> {
-  const Tesseract = await import("tesseract.js");
-  const worker = await Tesseract.createWorker("eng");
-  const url = URL.createObjectURL(file);
-  const { data } = await worker.recognize(url);
-  await worker.terminate();
-  URL.revokeObjectURL(url);
-  return data.text;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const base64 = buffer.toString("base64");
+  const mimeType = file.type || `image/${file.name.split(".").pop()?.toLowerCase()}`;
+  return extractTextWithGemini(base64, mimeType);
 }

@@ -12,6 +12,7 @@ const ACCEPTED = {
   "application/pdf": [".pdf"],
   "image/jpeg": [".jpg", ".jpeg"],
   "image/png": [".png"],
+  "image/webp": [".webp"],
   "text/plain": [".txt"],
 };
 
